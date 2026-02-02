@@ -14,11 +14,19 @@ export interface GenerateResponse {
 }
 
 // 商品カテゴリ
-export type ProductCategory = 
-  | 'prompt'      // プロンプト集
-  | 'notion'      // Notionテンプレート
-  | 'canva'       // Canvaテンプレート
-  | 'ebook';      // 電子書籍
+export type ProductCategory =
+  | 'prompt'        // プロンプト集
+  | 'notion'        // Notionテンプレート
+  | 'canva'         // Canvaテンプレート
+  | 'ebook'         // 電子書籍
+  | 'excel'         // Excelテンプレート
+  | 'spreadsheet'   // スプレッドシート
+  | 'powerpoint'    // PowerPointテンプレート
+  | 'figma'         // Figmaテンプレート
+  | 'checklist'     // チェックリスト/ワークシート
+  | 'linestamp'     // LINEスタンプ
+  | 'icon'          // アイコンセット
+  | 'course';       // オンラインコース
 
 // カテゴリ表示名
 export const CATEGORY_LABELS: Record<ProductCategory, string> = {
@@ -26,6 +34,14 @@ export const CATEGORY_LABELS: Record<ProductCategory, string> = {
   notion: 'Notionテンプレート',
   canva: 'Canvaテンプレート',
   ebook: '電子書籍',
+  excel: 'Excelテンプレート',
+  spreadsheet: 'スプレッドシート',
+  powerpoint: 'PowerPointテンプレート',
+  figma: 'Figmaテンプレート',
+  checklist: 'チェックリスト/ワークシート',
+  linestamp: 'LINEスタンプ',
+  icon: 'アイコンセット',
+  course: 'オンラインコース',
 };
 
 // Gumroad売上データ

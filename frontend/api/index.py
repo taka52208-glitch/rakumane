@@ -7,6 +7,14 @@ CATEGORY_LABELS = {
     "notion": "Notionテンプレート",
     "canva": "Canvaテンプレート",
     "ebook": "電子書籍",
+    "excel": "Excelテンプレート",
+    "spreadsheet": "スプレッドシート",
+    "powerpoint": "PowerPointテンプレート",
+    "figma": "Figmaテンプレート",
+    "checklist": "チェックリスト/ワークシート",
+    "linestamp": "LINEスタンプ",
+    "icon": "アイコンセット",
+    "course": "オンラインコース",
 }
 
 PRICE_RANGES = {
@@ -14,6 +22,14 @@ PRICE_RANGES = {
     "notion": (500, 1500),
     "canva": (800, 2000),
     "ebook": (500, 1980),
+    "excel": (500, 1500),
+    "spreadsheet": (500, 1500),
+    "powerpoint": (800, 2000),
+    "figma": (1500, 5000),
+    "checklist": (300, 980),
+    "linestamp": (120, 480),
+    "icon": (500, 2000),
+    "course": (3000, 30000),
 }
 
 
