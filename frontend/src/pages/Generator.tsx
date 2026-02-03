@@ -25,6 +25,7 @@ import {
   Refresh as RefreshIcon,
   Download as DownloadIcon,
   AutoFixHigh as ContentIcon,
+  Storefront as StorefrontIcon,
 } from '@mui/icons-material';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
@@ -115,6 +116,24 @@ export const Generator = () => {
     if (!contentMutation.data) return;
     navigator.clipboard.writeText(contentMutation.data.content);
     setSnackbar({ open: true, message: '全文をコピーしました', severity: 'success' });
+  };
+
+  const handlePublishToGumroad = () => {
+    if (!mutation.data || !contentMutation.data) return;
+
+    const productInfo = `商品名: ${selectedProductName}
+
+説明文:
+${mutation.data.description}
+
+価格: ${mutation.data.suggestedPrice}円
+
+タグ: ${mutation.data.tags.join(', ')}`;
+
+    navigator.clipboard.writeText(productInfo);
+    setSnackbar({ open: true, message: '商品情報をコピーしました。Gumroadで貼り付けてください', severity: 'success' });
+
+    window.open('https://app.gumroad.com/products/new', '_blank');
   };
 
   return (
@@ -312,14 +331,14 @@ export const Generator = () => {
                       >
                         {contentMutation.data.content}
                       </Paper>
-                      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                      <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
                         <Button
                           variant="contained"
                           color="success"
                           startIcon={<DownloadIcon />}
                           onClick={handleDownload}
                         >
-                          ダウンロード (.md)
+                          ダウンロード (.txt)
                         </Button>
                         <Button
                           variant="outlined"
@@ -336,6 +355,25 @@ export const Generator = () => {
                         >
                           再生成
                         </Button>
+                      </Box>
+                      <Box sx={{ mt: 2 }}>
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          startIcon={<StorefrontIcon />}
+                          onClick={handlePublishToGumroad}
+                          sx={{
+                            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%)',
+                            '&:hover': { background: 'linear-gradient(135deg, #ee5a5a 0%, #dd4a4a 100%)' },
+                            py: 1.5,
+                            fontSize: '1rem',
+                          }}
+                        >
+                          Gumroadで出品する
+                        </Button>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
+                          商品情報をコピーしてGumroadの商品作成ページを開きます
+                        </Typography>
                       </Box>
                     </Box>
                   )}
