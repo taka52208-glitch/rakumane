@@ -812,10 +812,10 @@ CONTENT_PROMPTS = {
 }
 
 
-def generate_content_with_gemini(category: str, product_name: str, target: str, additional_notes: str = ""):
-    api_key = os.environ.get("GEMINI_API_KEY")
+def generate_content_with_claude(category: str, product_name: str, target: str, additional_notes: str = ""):
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        return {"content": "[ERROR] GEMINI_API_KEY not set", "filename": "error.txt", "error": "NO_API_KEY"}
+        return {"content": "[ERROR] ANTHROPIC_API_KEY not set. Vercelの環境変数に設定してください。", "filename": "error.txt", "error": "NO_API_KEY"}
 
     base_prompt = CONTENT_PROMPTS.get(category, CONTENT_PROMPTS["prompt"])
 
@@ -826,23 +826,28 @@ def generate_content_with_gemini(category: str, product_name: str, target: str, 
         additional_notes=additional_text
     )
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    url = "https://api.anthropic.com/v1/messages"
 
     payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 16384},
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 16384,
+        "messages": [{"role": "user", "content": prompt}]
     }
 
     try:
         req = urllib.request.Request(
             url,
             data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01"
+            },
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=120) as response:
             result = json.loads(response.read().decode("utf-8"))
-            content = result["candidates"][0]["content"]["parts"][0]["text"]
+            content = result["content"][0]["text"]
 
             safe_name = product_name.replace(" ", "_").replace("/", "_")[:50]
             filename = f"{safe_name}.txt"
@@ -850,7 +855,7 @@ def generate_content_with_gemini(category: str, product_name: str, target: str, 
             return {"content": content, "filename": filename}
     except Exception as e:
         error_msg = str(e)
-        return {"content": f"[ERROR] Gemini API failed: {error_msg}", "filename": "error.txt", "error": error_msg}
+        return {"content": f"[ERROR] Claude API failed: {error_msg}", "filename": "error.txt", "error": error_msg}
 
 
 def generate_mock_content(category: str, product_name: str, target: str):
@@ -966,7 +971,7 @@ class handler(BaseHTTPRequestHandler):
             if not product_name:
                 raise ValueError("productName is required")
 
-            result = generate_content_with_gemini(category, product_name, target, additional_notes)
+            result = generate_content_with_claude(category, product_name, target, additional_notes)
 
             self.send_response(200)
             self.send_header("Content-type", "application/json")
