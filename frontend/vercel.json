@@ -7,6 +7,6 @@
     { "source": "/api/generate-content", "destination": "/api/generate-content" },
     { "source": "/api/health", "destination": "/api/index" },
     { "source": "/api/sales", "destination": "/api/index" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/:path*", "destination": "/" }
   ]
 }
