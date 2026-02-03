@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商品ジェネレーター - 実物生成機能モックアップ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 24px;
+    }
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      padding: 24px;
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    select, input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    select:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: #1976d2;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary {
+      background: #1976d2;
+      color: white;
+      width: 100%;
+    }
+    .btn-primary:hover {
+      background: #1565c0;
+    }
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+    /* 新機能: 実物生成ボタン */
+    .btn-generate-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px 24px;
+      font-size: 15px;
+    }
+    .btn-generate-content:hover {
+      opacity: 0.9;
+    }
+    .btn-download {
+      background: #4caf50;
+      color: white;
+    }
+    .btn-download:hover {
+      background: #43a047;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .result-section {
+      margin-bottom: 20px;
+    }
+    .result-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .product-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .price {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1976d2;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .tag {
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+    }
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      padding: 4px;
+    }
+    .copy-btn:hover {
+      color: #1976d2;
+    }
+
+    /* 新機能: コンテンツプレビュー */
+    .content-preview-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 2px dashed #e0e0e0;
+    }
+    .content-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .content-preview-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #667eea;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .content-preview-title::before {
+      content: "✨";
+    }
+    .content-preview {
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+    .content-preview h1 {
+      font-size: 20px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    .content-preview h2 {
+      font-size: 16px;
+      color: #667eea;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+    .content-preview ul {
+      margin-left: 20px;
+      margin-bottom: 12px;
+    }
+    .content-preview li {
+      margin-bottom: 4px;
+    }
+    .content-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    /* ステータスバッジ */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-badge.generating {
+      background: #fff3e0;
+      color: #f57c00;
+    }
+    .status-badge.complete {
+      background: #e8f5e9;
+      color: #43a047;
+    }
+
+    /* アニメーション */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .generating-animation {
+      animation: pulse 1.5s infinite;
+    }
+
+    /* 新機能バッジ */
+    .new-badge {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 8px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AIで売れる商品を生成</h1>
+    <p class="subtitle">カテゴリとターゲットを入力するだけで、商品名・説明文・価格・タグを自動生成します</p>
+
+    <div class="grid">
+      <!-- 左カラム: 入力フォーム -->
+      <div class="card">
+        <h2 class="card-title">入力</h2>
+
+        <div class="form-group">
+          <label>カテゴリ</label>
+          <select>
+            <option value="prompt" selected>AIプロンプト集</option>
+            <option value="notion">Notionテンプレート</option>
+            <option value="canva">Canvaテンプレート</option>
+            <option value="ebook">電子書籍</option>
+            <option value="excel">Excelテンプレート</option>
+            <option value="spreadsheet">スプレッドシート</option>
+            <option value="powerpoint">PowerPointテンプレート</option>
+            <option value="figma">Figmaテンプレート</option>
+            <option value="checklist">チェックリスト/ワークシート</option>
+            <option value="linestamp">LINEスタンプ</option>
+            <option value="icon">アイコンセット</option>
+            <option value="course">オンラインコース</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>ターゲット</label>
+          <input type="text" placeholder="例: 副業で稼ぎたい会社員" value="副業で稼ぎたい会社員">
+        </div>
+
+        <div class="form-group">
+          <label>追加の要望（任意）</label>
+          <textarea rows="2" placeholder="例: 初心者向けにシンプルに">ChatGPT活用に特化</textarea>
+        </div>
+
+        <button class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 9l-7 7-7-7"/>
+          </svg>
+          生成する
+        </button>
+      </div>
+
+      <!-- 右カラム: 生成結果 -->
+      <div class="card">
+        <div class="result-header">
+          <h2 class="card-title">生成結果</h2>
+          <button class="copy-btn" title="再生成">🔄</button>
+        </div>
+
+        <!-- 商品名 -->
+        <div class="result-section">
+          <div class="result-label">
+            商品名（3案）
+            <button class="copy-btn" title="コピー">📋</button>
+          </div>
+          <p class="product-name">1. 【ChatGPT副業術】月5万円を自動で稼ぐプロンプト50選</p>
+          <p class="product-name">2. 副業初心者必見！AIで収入を10倍にするプロンプト集</p>
+          <p class="product-name">3. 会社員のための時短副業AIプロンプト完全ガイド</p>
+        </div>
+
+        <!-- 商品説明文 -->
+        <div class="result-section">
+          <div class="result-label">
+            商品説明文
+            <button class="copy-btn" title="コピー">📋</button>
+          </div>
+          <p>「副業を始めたいけど時間がない...」そんなあなたに朗報です。</p>
+          <p style="margin-top: 8px;">このプロンプト集を使えば、ChatGPTを"稼げる相棒"に変身させることができます。コピペするだけで、ブログ記事作成、商品説明文、SNS投稿まで全自動。1日30分の作業で月5万円を目指せる、実践的なプロンプトを50個厳選しました。</p>
+        </div>
+
+        <!-- 推奨価格 -->
+        <div class="result-section">
+          <div class="result-label">推奨価格</div>
+          <p class="price">¥1,980</p>
+        </div>
+
+        <!-- タグ -->
+        <div class="result-section">
+          <div class="result-label">
+            タグ
+            <button class="copy-btn" title="コピー">📋</button>
+          </div>
+          <div class="tags">
+            <span class="tag">ChatGPT</span>
+            <span class="tag">副業</span>
+            <span class="tag">プロンプト</span>
+            <span class="tag">AI活用</span>
+            <span class="tag">時短</span>
+          </div>
+        </div>
+
+        <!-- ======================================== -->
+        <!-- 🆕 新機能: 実物コンテンツ生成セクション -->
+        <!-- ======================================== -->
+        <button class="btn btn-generate-content">
+          ✨ 実物コンテンツを生成する
+          <span class="new-badge">NEW</span>
+        </button>
+
+        <!-- コンテンツプレビューセクション（生成後に表示） -->
+        <div class="content-preview-section">
+          <div class="content-preview-header">
+            <span class="content-preview-title">生成されたコンテンツ</span>
+            <span class="status-badge complete">✓ 生成完了</span>
+          </div>
+
+          <div class="content-preview">
+<h1>【ChatGPT副業術】月5万円を自動で稼ぐプロンプト50選</h1>
+
+<h2>📚 目次</h2>
+<ul>
+  <li>はじめに：このプロンプト集の使い方</li>
+  <li>第1章：ブログ記事作成プロンプト（10個）</li>
+  <li>第2章：商品説明文プロンプト（10個）</li>
+  <li>第3章：SNS投稿プロンプト（10個）</li>
+  <li>第4章：メール・DM文章プロンプト（10個）</li>
+  <li>第5章：アイデア出しプロンプト（10個）</li>
+</ul>
+
+<h2>🚀 はじめに</h2>
+このプロンプト集は、副業初心者でもすぐに実践できるよう設計されています。
+各プロンプトをコピー&ペーストするだけで、高品質なコンテンツを生成できます。
+
+<h2>第1章：ブログ記事作成プロンプト</h2>
+
+<strong>プロンプト #1：SEO記事の構成案作成</strong>
+```
+あなたはSEOの専門家です。
+以下のキーワードで検索上位を狙えるブログ記事の構成案を作成してください。
+
+キーワード: [ここにキーワードを入力]
+ターゲット読者: [ターゲットを入力]
+
+以下の形式で出力してください：
+- タイトル案（3つ）
+- 記事構成（H2、H3の見出し）
+- 各セクションで書くべきポイント
+```
+
+<strong>プロンプト #2：記事本文の執筆</strong>
+```
+以下の構成で、読者の悩みを解決するブログ記事を書いてください。
+
+タイトル: [タイトルを入力]
+構成: [構成を入力]
+
+条件：
+- 読みやすい文章
+- 具体例を含める
+- 2000文字程度
+```
+
+... (以下、50個のプロンプトが続く)
+          </div>
+
+          <div class="content-actions">
+            <button class="btn btn-download">
+              ⬇️ ダウンロード (.md)
+            </button>
+            <button class="btn btn-secondary">
+              📋 全文コピー
+            </button>
+            <button class="btn btn-secondary">
+              🔄 再生成
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 説明パネル -->
+  <div class="container" style="margin-top: 40px;">
+    <div class="card" style="background: linear-gradient(135deg, #667eea11 0%, #764ba211 100%); border: 1px dashed #667eea;">
+      <h2 class="card-title" style="color: #667eea;">📝 モックアップ説明</h2>
+      <p style="margin-bottom: 12px;"><strong>新機能：実物コンテンツ生成</strong></p>
+      <ul style="margin-left: 20px; margin-bottom: 16px;">
+        <li>商品情報生成後に「実物コンテンツを生成する」ボタンが表示される</li>
+        <li>クリックするとAIが実際の商品コンテンツを生成</li>
+        <li>プレビューエリアでマークダウン形式のコンテンツを確認</li>
+        <li>「ダウンロード」で.mdファイルとして保存可能</li>
+        <li>「全文コピー」でクリップボードにコピー</li>
+        <li>「再生成」で別パターンのコンテンツを生成</li>
+      </ul>
+      <p><strong>カテゴリ別の生成内容：</strong></p>
+      <ul style="margin-left: 20px;">
+        <li><strong>プロンプト集</strong>：実際に使えるプロンプトリスト</li>
+        <li><strong>チェックリスト</strong>：タスク一覧・ワークシート</li>
+        <li><strong>電子書籍</strong>：目次・各章の内容</li>
+        <li><strong>テンプレート系</strong>：構成案・使い方ガイド</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

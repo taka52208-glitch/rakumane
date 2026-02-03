@@ -57,6 +57,7 @@
 |---------|---------------|------|------|------|
 | GET | /api/health | ヘルスチェック | [x] | [x] |
 | POST | /api/generate | 商品情報生成 | [x] | [x] |
+| POST | /api/generate-content | 実物コンテンツ生成 | [x] | [x] |
 | GET | /api/sales | Gumroad売上取得 | [x] | [x] |
 | POST | /api/settings | 設定保存 | [x] | [x] |
 | GET | /api/settings | 設定取得 | [x] | [x] |
@@ -92,3 +93,4 @@
 | 2026-02-02 | Phase 5 完了（機能実装） |
 | 2026-02-02 | Phase 6 完了（Vercelデプロイ） |
 | 2026-02-02 | **MVP完成・本番公開** |
+| 2026-02-03 | **新機能追加：実物コンテンツ生成（12カテゴリ対応）** |

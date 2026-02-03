@@ -16,20 +16,29 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
+  Divider,
+  Paper,
 } from '@mui/material';
 import {
   AutoAwesome as GenerateIcon,
   ContentCopy as CopyIcon,
   Refresh as RefreshIcon,
+  Download as DownloadIcon,
+  AutoFixHigh as ContentIcon,
 } from '@mui/icons-material';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { config } from '../config';
-import type { GenerateRequest, GenerateResponse, ProductCategory } from '../types';
+import type { GenerateRequest, GenerateResponse, GenerateContentRequest, GenerateContentResponse, ProductCategory } from '../types';
 import { CATEGORY_LABELS } from '../types';
 
 const generateProduct = async (request: GenerateRequest): Promise<GenerateResponse> => {
   const response = await axios.post(`${config.apiUrl}/api/generate`, request);
+  return response.data;
+};
+
+const generateContent = async (request: GenerateContentRequest): Promise<GenerateContentResponse> => {
+  const response = await axios.post(`${config.apiUrl}/api/generate-content`, request);
   return response.data;
 };
 
@@ -38,11 +47,27 @@ export const Generator = () => {
   const [target, setTarget] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const [selectedProductName, setSelectedProductName] = useState<string>('');
 
   const mutation = useMutation({
     mutationFn: generateProduct,
     onError: () => {
       setSnackbar({ open: true, message: '生成に失敗しました。バックエンドが起動しているか確認してください。', severity: 'error' });
+    },
+    onSuccess: (data) => {
+      if (data.productNames.length > 0) {
+        setSelectedProductName(data.productNames[0]);
+      }
+    },
+  });
+
+  const contentMutation = useMutation({
+    mutationFn: generateContent,
+    onError: () => {
+      setSnackbar({ open: true, message: 'コンテンツ生成に失敗しました。', severity: 'error' });
+    },
+    onSuccess: () => {
+      setSnackbar({ open: true, message: 'コンテンツを生成しました', severity: 'success' });
     },
   });
 
@@ -57,6 +82,39 @@ export const Generator = () => {
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     setSnackbar({ open: true, message: `${label}をコピーしました`, severity: 'success' });
+  };
+
+  const handleGenerateContent = () => {
+    if (!selectedProductName) {
+      setSnackbar({ open: true, message: '商品名を選択してください', severity: 'error' });
+      return;
+    }
+    contentMutation.mutate({
+      category,
+      productName: selectedProductName,
+      target,
+      additionalNotes: additionalNotes || undefined,
+    });
+  };
+
+  const handleDownload = () => {
+    if (!contentMutation.data) return;
+    const blob = new Blob([contentMutation.data.content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = contentMutation.data.filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setSnackbar({ open: true, message: 'ダウンロードしました', severity: 'success' });
+  };
+
+  const handleCopyContent = () => {
+    if (!contentMutation.data) return;
+    navigator.clipboard.writeText(contentMutation.data.content);
+    setSnackbar({ open: true, message: '全文をコピーしました', severity: 'success' });
   };
 
   return (
@@ -197,6 +255,90 @@ export const Generator = () => {
                       ))}
                     </Box>
                   </Box>
+
+                  {/* コンテンツ生成ボタン */}
+                  <Divider sx={{ my: 3 }} />
+                  <Box>
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <InputLabel size="small">生成する商品名を選択</InputLabel>
+                      <Select
+                        size="small"
+                        value={selectedProductName}
+                        label="生成する商品名を選択"
+                        onChange={(e) => setSelectedProductName(e.target.value)}
+                      >
+                        {mutation.data.productNames.map((name, i) => (
+                          <MenuItem key={i} value={name}>{name}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      startIcon={contentMutation.isPending ? <CircularProgress size={20} color="inherit" /> : <ContentIcon />}
+                      onClick={handleGenerateContent}
+                      disabled={contentMutation.isPending || !selectedProductName}
+                      sx={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        '&:hover': { opacity: 0.9 },
+                      }}
+                    >
+                      {contentMutation.isPending ? 'コンテンツ生成中...' : '実物コンテンツを生成する'}
+                      <Chip label="NEW" size="small" sx={{ ml: 1, bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontSize: '10px', height: '20px' }} />
+                    </Button>
+                  </Box>
+
+                  {/* コンテンツプレビュー */}
+                  {contentMutation.data && (
+                    <Box sx={{ mt: 3 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="subtitle1" sx={{ color: '#667eea', fontWeight: 500 }}>
+                          生成されたコンテンツ
+                        </Typography>
+                        <Chip label="生成完了" size="small" color="success" />
+                      </Box>
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 2,
+                          maxHeight: 400,
+                          overflow: 'auto',
+                          bgcolor: '#fafafa',
+                          fontFamily: 'monospace',
+                          fontSize: '13px',
+                          lineHeight: 1.8,
+                          whiteSpace: 'pre-wrap',
+                        }}
+                      >
+                        {contentMutation.data.content}
+                      </Paper>
+                      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          startIcon={<DownloadIcon />}
+                          onClick={handleDownload}
+                        >
+                          ダウンロード (.md)
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          startIcon={<CopyIcon />}
+                          onClick={handleCopyContent}
+                        >
+                          全文コピー
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          startIcon={<RefreshIcon />}
+                          onClick={handleGenerateContent}
+                          disabled={contentMutation.isPending}
+                        >
+                          再生成
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
               )}
             </CardContent>

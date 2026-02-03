@@ -4,7 +4,20 @@ from datetime import datetime
 
 
 # 商品カテゴリ
-ProductCategory = Literal["prompt", "notion", "canva", "ebook"]
+ProductCategory = Literal[
+    "prompt",       # AIプロンプト集
+    "notion",       # Notionテンプレート
+    "canva",        # Canvaテンプレート
+    "ebook",        # 電子書籍
+    "excel",        # Excelテンプレート
+    "spreadsheet",  # スプレッドシート
+    "powerpoint",   # PowerPointテンプレート
+    "figma",        # Figmaテンプレート
+    "checklist",    # チェックリスト/ワークシート
+    "linestamp",    # LINEスタンプ
+    "icon",         # アイコンセット
+    "course",       # オンラインコース
+]
 
 
 # 商品生成リクエスト
@@ -57,3 +70,17 @@ class DashboardSummary(BaseModel):
     monthlyGoal: int
     salesByProduct: list[ProductSales]
     dailySales: list[DailySales]
+
+
+# コンテンツ生成リクエスト
+class GenerateContentRequest(BaseModel):
+    category: ProductCategory
+    productName: str
+    target: str
+    additionalNotes: str | None = None
+
+
+# コンテンツ生成レスポンス
+class GenerateContentResponse(BaseModel):
+    content: str
+    filename: str

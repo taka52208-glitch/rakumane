@@ -1,5 +1,7 @@
 import json
 import os
+import urllib.request
+import urllib.error
 from http.server import BaseHTTPRequestHandler
 
 CATEGORY_LABELS = {
@@ -33,7 +35,63 @@ PRICE_RANGES = {
 }
 
 
-def generate_product(category: str, target: str, additional_notes: str = None):
+def generate_with_gemini(category: str, target: str, additional_notes: str = ""):
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return generate_mock(category, target)
+
+    category_label = CATEGORY_LABELS.get(category, "デジタル商品")
+    price_min, price_max = PRICE_RANGES.get(category, (980, 1980))
+
+    prompt = f"""あなたはGumroadで月100万円以上稼ぐトップセラーのデジタル商品クリエイターです。
+売れる商品を提案してください。
+
+【商品カテゴリ】{category_label}
+【ターゲット】{target}
+{f"【追加要望】{additional_notes}" if additional_notes else ""}
+
+以下のJSON形式のみで出力してください（日本語で、説明文なし）:
+{{
+  "productNames": ["魅力的な商品名1", "魅力的な商品名2", "魅力的な商品名3"],
+  "description": "購買意欲を刺激する200-300文字の商品説明文。ベネフィットを明確に。",
+  "suggestedPrice": {price_min}から{price_max}の間の最適価格（整数のみ）,
+  "tags": ["検索されやすいタグ1", "タグ2", "タグ3", "タグ4", "タグ5"]
+}}
+
+【重要ルール】
+- 商品名は具体的な数字や成果を含める（例：「30日で〇〇」「〇〇が10倍になる」）
+- 説明文は「あなた」に語りかける形式で、悩みと解決策を明示
+- タグはGumroad検索で上位表示されやすいキーワードを選定
+- JSONのみを出力"""
+
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={api_key}"
+
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.9, "maxOutputTokens": 1024},
+    }
+
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as response:
+            result = json.loads(response.read().decode("utf-8"))
+            response_text = result["candidates"][0]["content"]["parts"][0]["text"]
+
+            start = response_text.find("{")
+            end = response_text.rfind("}") + 1
+            json_str = response_text[start:end]
+            return json.loads(json_str)
+    except Exception as e:
+        print(f"Gemini API error: {e}")
+        return generate_mock(category, target)
+
+
+def generate_mock(category: str, target: str):
     category_label = CATEGORY_LABELS.get(category, "デジタル商品")
     price_min, price_max = PRICE_RANGES.get(category, (980, 1980))
     avg_price = (price_min + price_max) // 2
@@ -81,7 +139,7 @@ class handler(BaseHTTPRequestHandler):
             target = data.get("target", "")
             additional_notes = data.get("additionalNotes", "")
 
-            result = generate_product(category, target, additional_notes)
+            result = generate_with_gemini(category, target, additional_notes)
 
             self.send_response(200)
             self.send_header("Content-type", "application/json")
