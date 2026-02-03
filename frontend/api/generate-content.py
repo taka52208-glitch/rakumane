@@ -1,6 +1,7 @@
 import json
 import os
 import urllib.request
+import urllib.error
 from http.server import BaseHTTPRequestHandler
 
 CATEGORY_LABELS = {
@@ -853,6 +854,9 @@ def generate_content_with_claude(category: str, product_name: str, target: str, 
             filename = f"{safe_name}.txt"
 
             return {"content": content, "filename": filename}
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8")
+        return {"content": f"[ERROR] Claude API HTTP {e.code}: {error_body}", "filename": "error.txt", "error": error_body}
     except Exception as e:
         error_msg = str(e)
         return {"content": f"[ERROR] Claude API failed: {error_msg}", "filename": "error.txt", "error": error_msg}
