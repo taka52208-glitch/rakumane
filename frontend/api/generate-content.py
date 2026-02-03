@@ -815,7 +815,7 @@ CONTENT_PROMPTS = {
 def generate_content_with_gemini(category: str, product_name: str, target: str, additional_notes: str = ""):
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        return generate_mock_content(category, product_name, target)
+        return {"content": "[ERROR] GEMINI_API_KEY not set", "filename": "error.txt", "error": "NO_API_KEY"}
 
     base_prompt = CONTENT_PROMPTS.get(category, CONTENT_PROMPTS["prompt"])
 
@@ -826,7 +826,7 @@ def generate_content_with_gemini(category: str, product_name: str, target: str, 
         additional_notes=additional_text
     )
 
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
 
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
@@ -849,8 +849,8 @@ def generate_content_with_gemini(category: str, product_name: str, target: str, 
 
             return {"content": content, "filename": filename}
     except Exception as e:
-        print(f"Gemini API error: {e}")
-        return generate_mock_content(category, product_name, target)
+        error_msg = str(e)
+        return {"content": f"[ERROR] Gemini API failed: {error_msg}", "filename": "error.txt", "error": error_msg}
 
 
 def generate_mock_content(category: str, product_name: str, target: str):
