@@ -829,7 +829,7 @@ def generate_content_with_claude(category: str, product_name: str, target: str, 
     url = "https://api.anthropic.com/v1/messages"
 
     payload = {
-        "model": "claude-sonnet-4-20250514",
+        "model": "claude-3-5-sonnet-20241022",
         "max_tokens": 16384,
         "messages": [{"role": "user", "content": prompt}]
     }
